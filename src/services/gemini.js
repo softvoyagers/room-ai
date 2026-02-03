@@ -120,7 +120,7 @@ export async function parsePromptWithGemini(apiKey, userPrompt, existingFurnitur
         }],
         generationConfig: {
           temperature: 0.5,
-          maxOutputTokens: 2048,
+          maxOutputTokens: 8192,
         }
       })
     }
