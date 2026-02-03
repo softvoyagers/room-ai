@@ -37,7 +37,7 @@ export default function App() {
     setError('')
 
     try {
-      const newFurniture = await parsePromptWithGemini(apiKey, prompt)
+      const newFurniture = await parsePromptWithGemini(apiKey, prompt, furniture)
       setFurniture((prev) => [...prev, newFurniture])
       setHistory((prev) => [...prev, { prompt, furniture: newFurniture }])
     } catch (err) {

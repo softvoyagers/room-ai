@@ -1,96 +1,61 @@
-const SYSTEM_PROMPT = `Jesteś asystentem do projektowania wnętrz. Użytkownik opisuje mebel do dodania w pokoju.
+const SYSTEM_PROMPT = `Jesteś projektantem wnętrz. Użytkownik chce dodać mebel do pokoju 8x8 metrów.
 
-WAŻNE: Zwróć WYŁĄCZNIE poprawny JSON, bez żadnego tekstu przed ani po, bez markdown.
+WAŻNE: Zwróć WYŁĄCZNIE poprawny JSON, bez tekstu przed ani po, bez markdown.
 
-Przykład poprawnej odpowiedzi:
-{"type":"chair","position":{"x":0,"z":0},"color":"#dc2626","size":{"width":0.45,"depth":0.45,"height":0.9},"legs":"high"}
+Schemat odpowiedzi:
+{"type":"...","position":{"x":number,"z":number},"color":"#hex","size":{"width":number,"depth":number,"height":number},"legs":"high|low|none"}
 
-Schemat:
-- type: jeden z: "sofa", "table", "chair", "lamp", "wardrobe", "bed"
-- position: {"x": liczba od -3.5 do 3.5, "z": liczba od -3.5 do 3.5}
-- color: kolor w formacie HEX (np. "#dc2626"), NIE nazwa koloru
-- size: {"width": metry, "depth": metry, "height": metry}
-- legs: jeden z: "high", "low", "none"
+Typy mebli: sofa, table, chair, lamp, wardrobe, bed
 
-Mapowanie pozycji:
-- "na środku" = x:0, z:0
-- "w lewym rogu" = x:-3, z:-3
-- "w prawym rogu" = x:3, z:-3
-- "przy ścianie" = z:-3.5 lub x:3.5/-3.5
+ZASADY ROZMIESZCZANIA:
+- Pokój ma wymiary od -4 do 4 (środek to 0,0)
+- Ściany są na: z=-4 (tylna), x=-4 (lewa), x=4 (prawa)
+- Kanapy i łóżka stawiaj przy ścianach (z=-3.5 lub x=±3.5)
+- Szafy stawiaj pod ścianami
+- Stoły mogą być na środku lub lekko przesunięte
+- Krzesła stawiaj przy stołach lub w rogach
+- Lampy stawiaj w rogach lub przy kanapach
+- NIE stawiaj mebli na sobie - sprawdź listę istniejących mebli
+- Zostaw przejścia między meblami (min 0.5m)
+- Twórz estetyczne kompozycje - meble powinny tworzyć spójną aranżację
 
-Mapowanie kolorów na HEX:
-- czerwony = #dc2626
-- niebieski = #2563eb
-- zielony = #16a34a
-- szary = #808080
-- biały = #ffffff
-- czarny = #1f2937
-- brązowy = #92400e
-- beżowy = #d4c4a8
-- żółty = #eab308
-- pomarańczowy = #ea580c
-- różowy = #ec4899
-- fioletowy = #9333ea
+Kolory HEX:
+czerwony=#dc2626, niebieski=#2563eb, zielony=#16a34a, szary=#808080, biały=#ffffff, czarny=#1f2937, brązowy=#92400e, beżowy=#d4c4a8, żółty=#eab308, różowy=#ec4899
 
-Domyślne rozmiary:
-- sofa: 2×0.9×0.8m
-- table: 1.2×0.8×0.75m
-- chair: 0.45×0.45×0.9m
-- lamp: 0.3×0.3×1.5m
-- wardrobe: 1.5×0.6×2.2m
-- bed: 1.6×2×0.5m`;
+Domyślne rozmiary (metry):
+- sofa: 2×0.9×0.8
+- table: 1.2×0.8×0.75
+- chair: 0.45×0.45×0.9
+- lamp: 0.3×0.3×1.5
+- wardrobe: 1.5×0.6×2.2
+- bed: 1.6×2×0.5`;
 
-// Mapowanie nazw kolorów na HEX (fallback)
 const COLOR_MAP = {
-  red: '#dc2626',
-  czerwony: '#dc2626',
-  blue: '#2563eb',
-  niebieski: '#2563eb',
-  green: '#16a34a',
-  zielony: '#16a34a',
-  gray: '#808080',
-  grey: '#808080',
-  szary: '#808080',
-  white: '#ffffff',
-  biały: '#ffffff',
-  bialy: '#ffffff',
-  black: '#1f2937',
-  czarny: '#1f2937',
-  brown: '#92400e',
-  brązowy: '#92400e',
-  brazowy: '#92400e',
-  beige: '#d4c4a8',
-  beżowy: '#d4c4a8',
-  bezowy: '#d4c4a8',
-  yellow: '#eab308',
-  żółty: '#eab308',
-  zolty: '#eab308',
-  orange: '#ea580c',
-  pomarańczowy: '#ea580c',
-  pomaranczowy: '#ea580c',
-  pink: '#ec4899',
-  różowy: '#ec4899',
-  rozowy: '#ec4899',
-  purple: '#9333ea',
-  fioletowy: '#9333ea',
+  red: '#dc2626', czerwony: '#dc2626',
+  blue: '#2563eb', niebieski: '#2563eb',
+  green: '#16a34a', zielony: '#16a34a',
+  gray: '#808080', grey: '#808080', szary: '#808080',
+  white: '#ffffff', biały: '#ffffff', bialy: '#ffffff',
+  black: '#1f2937', czarny: '#1f2937',
+  brown: '#92400e', brązowy: '#92400e', brazowy: '#92400e',
+  beige: '#d4c4a8', beżowy: '#d4c4a8', bezowy: '#d4c4a8',
+  yellow: '#eab308', żółty: '#eab308', zolty: '#eab308',
+  orange: '#ea580c', pomarańczowy: '#ea580c', pomaranczowy: '#ea580c',
+  pink: '#ec4899', różowy: '#ec4899', rozowy: '#ec4899',
+  purple: '#9333ea', fioletowy: '#9333ea',
 };
 
-// Normalizacja odpowiedzi AI
 function normalizeResponse(furniture) {
-  // Normalizuj kolor
   if (furniture.color && !furniture.color.startsWith('#')) {
-    const colorLower = furniture.color.toLowerCase();
-    furniture.color = COLOR_MAP[colorLower] || '#808080';
+    furniture.color = COLOR_MAP[furniture.color.toLowerCase()] || '#808080';
   }
 
-  // Normalizuj legs
   if (typeof furniture.legs === 'number') {
     furniture.legs = furniture.legs > 0 ? 'high' : 'none';
   } else if (!['high', 'low', 'none'].includes(furniture.legs)) {
     furniture.legs = 'low';
   }
 
-  // Domyślne rozmiary jeśli brak
   const defaultSizes = {
     sofa: { width: 2, depth: 0.9, height: 0.8 },
     table: { width: 1.2, depth: 0.8, height: 0.75 },
@@ -104,7 +69,6 @@ function normalizeResponse(furniture) {
     furniture.size = defaultSizes[furniture.type] || defaultSizes.chair;
   }
 
-  // Domyślna pozycja jeśli brak
   if (!furniture.position || typeof furniture.position !== 'object') {
     furniture.position = { x: 0, z: 0 };
   }
@@ -112,25 +76,32 @@ function normalizeResponse(furniture) {
   return furniture;
 }
 
-export async function parsePromptWithGemini(apiKey, userPrompt) {
+export async function parsePromptWithGemini(apiKey, userPrompt, existingFurniture = []) {
+  // Przygotuj opis aktualnych mebli w pokoju
+  let roomContext = '';
+  if (existingFurniture.length > 0) {
+    const furnitureList = existingFurniture.map(f =>
+      `- ${f.type} na pozycji (${f.position.x.toFixed(1)}, ${f.position.z.toFixed(1)})`
+    ).join('\n');
+    roomContext = `\n\nAKTUALNE MEBLE W POKOJU:\n${furnitureList}\n\nUstaw nowy mebel tak, żeby nie kolidował z istniejącymi i tworzył estetyczną kompozycję.`;
+  } else {
+    roomContext = '\n\nPokój jest pusty. Ustaw mebel w sensownym miejscu (np. kanapę przy ścianie, stół bliżej środka).';
+  }
+
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: SYSTEM_PROMPT },
-              { text: `Dodaj mebel: ${userPrompt}` }
-            ]
-          }
-        ],
+        contents: [{
+          parts: [
+            { text: SYSTEM_PROMPT + roomContext },
+            { text: `Dodaj mebel: ${userPrompt}` }
+          ]
+        }],
         generationConfig: {
-          temperature: 0.2,
+          temperature: 0.4,
           maxOutputTokens: 1024,
         }
       })
@@ -143,51 +114,33 @@ export async function parsePromptWithGemini(apiKey, userPrompt) {
   }
 
   const data = await response.json();
-
-  // DEBUG: Loguj całą odpowiedź API
-  console.log('=== GEMINI API DEBUG ===');
-  console.log('Full API response:', JSON.stringify(data, null, 2));
-
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-  console.log('Extracted text:', text);
+  console.log('Gemini response:', text);
 
   if (!text) {
-    console.error('No text in response. Full data:', data);
     throw new Error('Brak odpowiedzi od Gemini');
   }
 
-  // Parse JSON from response
   let jsonStr = text.trim();
-  console.log('Trimmed text:', jsonStr);
-
-  // Usuń markdown code blocks jeśli są
   if (jsonStr.startsWith('```')) {
     jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '').trim();
   }
 
-  // Znajdź JSON w odpowiedzi (pierwszy { do ostatniego })
   const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-  console.log('JSON match result:', jsonMatch);
   if (jsonMatch) {
     jsonStr = jsonMatch[0];
   }
-  console.log('Final JSON string to parse:', jsonStr);
 
   try {
     let furniture = JSON.parse(jsonStr);
-    console.log('Parsed furniture object:', furniture);
 
-    // Walidacja typu
     const validTypes = ['sofa', 'table', 'chair', 'lamp', 'wardrobe', 'bed'];
     if (!furniture.type || !validTypes.includes(furniture.type)) {
       throw new Error('Nieznany typ mebla');
     }
 
-    // Normalizuj odpowiedź
     furniture = normalizeResponse(furniture);
-
-    // Dodaj unikalne ID
     furniture.id = Date.now().toString();
 
     return furniture;
