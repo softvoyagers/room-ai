@@ -1,10 +1,22 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import Room3D from './components/Room3D'
 import PromptInput from './components/PromptInput'
 import ApiKeyModal from './components/ApiKeyModal'
 import { parsePromptWithGemini } from './services/gemini'
 
 const API_KEY_STORAGE = 'room-designer-api-key'
+
+// Demo prompts dla szybkiego testowania
+const DEMO_PROMPTS = [
+  { label: '🛋️ Szara kanapa', prompt: 'szara kanapa w lewym rogu' },
+  { label: '🪑 Czerwone krzesło', prompt: 'czerwone krzesło na środku' },
+  { label: '🛏️ Białe łóżko', prompt: 'białe łóżko przy ścianie' },
+  { label: '🪔 Czarna lampa', prompt: 'czarna lampa w prawym rogu' },
+  { label: '🗄️ Brązowa szafa', prompt: 'brązowa szafa przy lewej ścianie' },
+  { label: '🪵 Drewniany stół', prompt: 'brązowy stół na środku pokoju' },
+  { label: '💺 Niebieskie krzesło', prompt: 'niebieskie krzesło obok stołu' },
+  { label: '🌸 Różowa kanapa', prompt: 'różowa kanapa przy prawej ścianie' },
+]
 
 export default function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem(API_KEY_STORAGE) || '')
@@ -59,8 +71,16 @@ export default function App() {
     setShowApiModal(true)
   }
 
+  // Losowe przyciski demo (4 losowe z listy)
+  const getRandomDemoButtons = () => {
+    const shuffled = [...DEMO_PROMPTS].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, 4)
+  }
+
+  const [demoButtons] = useState(getRandomDemoButtons)
+
   return (
-    <div className="w-full h-full flex flex-col bg-gray-100">
+    <div className="w-screen h-screen flex flex-col bg-gray-100 overflow-hidden">
       {/* API Key Modal */}
       {showApiModal && (
         <ApiKeyModal
@@ -70,7 +90,7 @@ export default function App() {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-10">
+      <header className="bg-white shadow-sm px-4 py-3 flex items-center justify-between z-10 flex-shrink-0">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold text-gray-800">
             🏠 3D Room Designer
@@ -107,7 +127,7 @@ export default function App() {
       </header>
 
       {/* 3D Canvas */}
-      <div className="flex-1 relative">
+      <div className="relative overflow-hidden" style={{ height: '60vh' }}>
         <Room3D furniture={furniture} />
 
         {/* Instructions overlay (shown when room is empty) */}
@@ -116,13 +136,7 @@ export default function App() {
             <p className="text-gray-700">
               <strong>Jak używać?</strong>
               <br />
-              Wpisz opis mebla poniżej, np.:
-              <br />
-              <span className="text-blue-600">"dodaj szarą kanapę w lewym rogu"</span>
-              <br />
-              <span className="text-blue-600">"czerwone krzesło na środku pokoju"</span>
-              <br />
-              <span className="text-blue-600">"biała lampa przy ścianie"</span>
+              Wpisz opis mebla poniżej lub kliknij przycisk demo.
             </p>
           </div>
         )}
@@ -149,21 +163,36 @@ export default function App() {
 
       {/* Error message */}
       {error && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg shadow-lg">
+        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 bg-red-100 border border-red-300 text-red-700 px-4 py-2 rounded-lg shadow-lg z-20">
           {error}
         </div>
       )}
 
       {/* Input area */}
-      <div className="bg-white border-t border-gray-200 px-4 py-4">
+      <div className="bg-white border-t border-gray-200 px-4 py-4 flex-shrink-0">
         <div className="max-w-3xl mx-auto">
+          {/* Demo buttons */}
+          <div className="flex flex-wrap gap-2 mb-3 justify-center">
+            {demoButtons.map((demo, index) => (
+              <button
+                key={index}
+                onClick={() => handlePromptSubmit(demo.prompt)}
+                disabled={isLoading || !apiKey}
+                className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full
+                         transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {demo.label}
+              </button>
+            ))}
+          </div>
+
           <PromptInput
             onSubmit={handlePromptSubmit}
             isLoading={isLoading}
             disabled={!apiKey}
           />
           <p className="text-xs text-gray-400 mt-2 text-center">
-            Dostępne meble: kanapa (sofa), stół (table), krzesło (chair), lampa (lamp), szafa (wardrobe), łóżko (bed)
+            Dostępne meble: kanapa, stół, krzesło, lampa, szafa, łóżko
           </p>
         </div>
       </div>
