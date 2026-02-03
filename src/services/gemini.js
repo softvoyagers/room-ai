@@ -131,7 +131,7 @@ export async function parsePromptWithGemini(apiKey, userPrompt) {
         ],
         generationConfig: {
           temperature: 0.2,
-          maxOutputTokens: 300,
+          maxOutputTokens: 1024,
         }
       })
     }
@@ -143,14 +143,23 @@ export async function parsePromptWithGemini(apiKey, userPrompt) {
   }
 
   const data = await response.json();
+
+  // DEBUG: Loguj całą odpowiedź API
+  console.log('=== GEMINI API DEBUG ===');
+  console.log('Full API response:', JSON.stringify(data, null, 2));
+
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
+  console.log('Extracted text:', text);
+
   if (!text) {
+    console.error('No text in response. Full data:', data);
     throw new Error('Brak odpowiedzi od Gemini');
   }
 
   // Parse JSON from response
   let jsonStr = text.trim();
+  console.log('Trimmed text:', jsonStr);
 
   // Usuń markdown code blocks jeśli są
   if (jsonStr.startsWith('```')) {
@@ -159,12 +168,15 @@ export async function parsePromptWithGemini(apiKey, userPrompt) {
 
   // Znajdź JSON w odpowiedzi (pierwszy { do ostatniego })
   const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+  console.log('JSON match result:', jsonMatch);
   if (jsonMatch) {
     jsonStr = jsonMatch[0];
   }
+  console.log('Final JSON string to parse:', jsonStr);
 
   try {
     let furniture = JSON.parse(jsonStr);
+    console.log('Parsed furniture object:', furniture);
 
     // Walidacja typu
     const validTypes = ['sofa', 'table', 'chair', 'lamp', 'wardrobe', 'bed'];

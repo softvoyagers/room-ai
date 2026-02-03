@@ -70,11 +70,12 @@ function Room() {
 
 export default function Room3D({ furniture }) {
   return (
-    <Canvas
-      shadows
-      camera={{ position: [8, 6, 8], fov: 50 }}
-      style={{ background: 'linear-gradient(to bottom, #87CEEB 0%, #E0E5EC 100%)' }}
-    >
+    <div style={{ width: '100%', height: '100%' }}>
+      <Canvas
+        shadows
+        camera={{ position: [8, 6, 8], fov: 50 }}
+        style={{ background: 'linear-gradient(to bottom, #87CEEB 0%, #E0E5EC 100%)' }}
+      >
       {/* Lighting */}
       <ambientLight intensity={0.5} />
       <directionalLight
@@ -99,17 +100,18 @@ export default function Room3D({ furniture }) {
         <Furniture key={item.id} item={item} />
       ))}
 
-      {/* Camera controls */}
-      <OrbitControls
-        enablePan={true}
-        enableZoom={true}
-        enableRotate={true}
-        minPolarAngle={0.1}
-        maxPolarAngle={Math.PI / 2 - 0.1}
-        minDistance={3}
-        maxDistance={20}
-        target={[0, 0.5, 0]}
-      />
-    </Canvas>
+        {/* Camera controls */}
+        <OrbitControls
+          enablePan={true}
+          enableZoom={true}
+          enableRotate={true}
+          minPolarAngle={0.1}
+          maxPolarAngle={Math.PI / 2 - 0.1}
+          minDistance={3}
+          maxDistance={20}
+          target={[0, 0.5, 0]}
+        />
+      </Canvas>
+    </div>
   )
 }
