@@ -227,13 +227,57 @@ export function Bed({ position, color, size, legs }) {
   )
 }
 
+// Generic box for unknown furniture types
+function GenericBox({ position, color, size, mountedOnWall }) {
+  const { width = 0.5, depth = 0.5, height = 0.5 } = size || {}
+
+  // Jeśli na ścianie, podnieś na odpowiednią wysokość
+  const yPos = mountedOnWall ? 1.5 : height / 2
+
+  return (
+    <group position={[position.x, yPos, position.z]}>
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[width, height, depth]} />
+        <meshStandardMaterial color={color} />
+      </mesh>
+    </group>
+  )
+}
+
+// TV component
+function TV({ position, color, size }) {
+  const { width = 1.2, depth = 0.05, height = 0.7 } = size || {}
+  const screenColor = '#1a1a1a'
+
+  return (
+    <group position={[position.x, 1.3, position.z]}>
+      {/* Frame */}
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[width, height, depth]} />
+        <meshStandardMaterial color={color || '#2a2a2a'} />
+      </mesh>
+      {/* Screen */}
+      <mesh position={[0, 0, depth / 2 + 0.001]}>
+        <planeGeometry args={[width - 0.06, height - 0.06]} />
+        <meshStandardMaterial color={screenColor} metalness={0.5} roughness={0.2} />
+      </mesh>
+      {/* Stand */}
+      <mesh position={[0, -height / 2 - 0.05, 0.1]} castShadow>
+        <boxGeometry args={[0.3, 0.1, 0.2]} />
+        <meshStandardMaterial color={color || '#2a2a2a'} />
+      </mesh>
+    </group>
+  )
+}
+
 // Main Furniture renderer
 export default function Furniture({ item }) {
   const props = {
     position: item.position,
     color: item.color,
     size: item.size,
-    legs: item.legs
+    legs: item.legs,
+    mountedOnWall: item.mountedOnWall
   }
 
   switch (item.type) {
@@ -249,7 +293,11 @@ export default function Furniture({ item }) {
       return <Wardrobe {...props} />
     case 'bed':
       return <Bed {...props} />
+    case 'tv':
+    case 'telewizor':
+    case 'television':
+      return <TV {...props} />
     default:
-      return null
+      return <GenericBox {...props} />
   }
 }

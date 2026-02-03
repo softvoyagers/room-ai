@@ -1,11 +1,12 @@
-const SYSTEM_PROMPT = `Jesteś projektantem wnętrz. Użytkownik chce dodać mebel do pokoju 8x8 metrów.
+const SYSTEM_PROMPT = `Jesteś projektantem wnętrz. Użytkownik chce dodać mebel/przedmiot do pokoju 8x8 metrów.
 
 WAŻNE: Zwróć WYŁĄCZNIE poprawny JSON, bez tekstu przed ani po, bez markdown.
 
 Schemat odpowiedzi:
-{"type":"...","position":{"x":number,"z":number},"color":"#hex","size":{"width":number,"depth":number,"height":number},"legs":"high|low|none"}
+{"type":"...","position":{"x":number,"z":number},"color":"#hex","size":{"width":number,"depth":number,"height":number},"legs":"high|low|none","mountedOnWall":boolean}
 
-Typy mebli: sofa, table, chair, lamp, wardrobe, bed
+Znane typy (mają specjalne modele 3D): sofa, table, chair, lamp, wardrobe, bed
+Inne przedmioty (tv, biurko, fotel, komoda, regał, lustro, obraz, roślina, dywan itp.) - podaj sensowne wymiary i pozycję.
 
 ZASADY ROZMIESZCZANIA:
 - Pokój ma wymiary od -4 do 4 (środek to 0,0)
@@ -15,9 +16,15 @@ ZASADY ROZMIESZCZANIA:
 - Stoły mogą być na środku lub lekko przesunięte
 - Krzesła stawiaj przy stołach lub w rogach
 - Lampy stawiaj w rogach lub przy kanapach
+- TV/telewizor: mountedOnWall=true, przy ścianie tylnej (z=-3.9), naprzeciwko kanapy, wymiary ~1.2x0.05x0.7m
+- Biurko: przy ścianie, wymiary ~1.2x0.6x0.75m
+- Regał/półki: przy ścianie, wymiary ~0.8x0.3x1.8m
+- Dywan: na podłodze (height=0.02), wymiary ~2x3m
+- Roślina/kwiat: w rogu lub przy oknie, wymiary ~0.4x0.4x1m
+- Obraz/lustro: mountedOnWall=true, na ścianie
 - NIE stawiaj mebli na sobie - sprawdź listę istniejących mebli
 - Zostaw przejścia między meblami (min 0.5m)
-- Twórz estetyczne kompozycje - meble powinny tworzyć spójną aranżację
+- Twórz estetyczne kompozycje
 
 Kolory HEX:
 czerwony=#dc2626, niebieski=#2563eb, zielony=#16a34a, szary=#808080, biały=#ffffff, czarny=#1f2937, brązowy=#92400e, beżowy=#d4c4a8, żółty=#eab308, różowy=#ec4899
@@ -53,7 +60,7 @@ function normalizeResponse(furniture) {
   if (typeof furniture.legs === 'number') {
     furniture.legs = furniture.legs > 0 ? 'high' : 'none';
   } else if (!['high', 'low', 'none'].includes(furniture.legs)) {
-    furniture.legs = 'low';
+    furniture.legs = 'none';
   }
 
   const defaultSizes = {
@@ -63,14 +70,24 @@ function normalizeResponse(furniture) {
     lamp: { width: 0.3, depth: 0.3, height: 1.5 },
     wardrobe: { width: 1.5, depth: 0.6, height: 2.2 },
     bed: { width: 1.6, depth: 2, height: 0.5 },
+    tv: { width: 1.2, depth: 0.05, height: 0.7 },
+    desk: { width: 1.2, depth: 0.6, height: 0.75 },
+    shelf: { width: 0.8, depth: 0.3, height: 1.8 },
+    plant: { width: 0.4, depth: 0.4, height: 1.0 },
+    rug: { width: 2, depth: 3, height: 0.02 },
   };
 
   if (!furniture.size || typeof furniture.size !== 'object') {
-    furniture.size = defaultSizes[furniture.type] || defaultSizes.chair;
+    furniture.size = defaultSizes[furniture.type] || { width: 0.5, depth: 0.5, height: 0.5 };
   }
 
   if (!furniture.position || typeof furniture.position !== 'object') {
     furniture.position = { x: 0, z: 0 };
+  }
+
+  // Domyślnie mountedOnWall = false
+  if (typeof furniture.mountedOnWall !== 'boolean') {
+    furniture.mountedOnWall = false;
   }
 
   return furniture;
@@ -135,9 +152,8 @@ export async function parsePromptWithGemini(apiKey, userPrompt, existingFurnitur
   try {
     let furniture = JSON.parse(jsonStr);
 
-    const validTypes = ['sofa', 'table', 'chair', 'lamp', 'wardrobe', 'bed'];
-    if (!furniture.type || !validTypes.includes(furniture.type)) {
-      throw new Error('Nieznany typ mebla');
+    if (!furniture.type) {
+      throw new Error('Brak typu mebla');
     }
 
     furniture = normalizeResponse(furniture);
