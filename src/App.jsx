@@ -8,14 +8,14 @@ const API_KEY_STORAGE = 'room-designer-api-key'
 
 // Demo prompts dla szybkiego testowania
 const DEMO_PROMPTS = [
-  { label: '🛋️ Szara kanapa', prompt: 'szara kanapa w lewym rogu' },
-  { label: '🪑 Czerwone krzesło', prompt: 'czerwone krzesło na środku' },
-  { label: '🛏️ Białe łóżko', prompt: 'białe łóżko przy ścianie' },
-  { label: '🪔 Czarna lampa', prompt: 'czarna lampa w prawym rogu' },
-  { label: '🗄️ Brązowa szafa', prompt: 'brązowa szafa przy lewej ścianie' },
-  { label: '🪵 Drewniany stół', prompt: 'brązowy stół na środku pokoju' },
-  { label: '💺 Niebieskie krzesło', prompt: 'niebieskie krzesło obok stołu' },
-  { label: '🌸 Różowa kanapa', prompt: 'różowa kanapa przy prawej ścianie' },
+  { label: '📺 Telewizor', prompt: 'duży telewizor na ścianie' },
+  { label: '🛋️ Kanapa', prompt: 'szara kanapa naprzeciwko telewizora' },
+  { label: '🪴 Roślina', prompt: 'zielona roślina w doniczce w rogu' },
+  { label: '🎮 Konsola PS5', prompt: 'biała konsola PlayStation 5 pod telewizorem' },
+  { label: '☕ Stolik kawowy', prompt: 'niski stolik kawowy przed kanapą' },
+  { label: '💡 Lampa', prompt: 'nowoczesna lampa stojąca przy kanapie' },
+  { label: '🖼️ Obraz', prompt: 'kolorowy obraz na ścianie' },
+  { label: '📚 Regał', prompt: 'drewniany regał na książki przy ścianie' },
 ]
 
 export default function App() {
