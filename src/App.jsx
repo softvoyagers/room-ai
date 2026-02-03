@@ -127,7 +127,7 @@ export default function App() {
       </header>
 
       {/* 3D Canvas */}
-      <div className="flex-1 relative overflow-hidden" style={{ minHeight: 0 }}>
+      <div className="relative overflow-hidden" style={{ height: '60vh' }}>
         <Room3D furniture={furniture} />
 
         {/* Instructions overlay (shown when room is empty) */}
