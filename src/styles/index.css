@@ -1,7 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* Base styles */
 html, body {
   margin: 0;
   padding: 0;
@@ -13,4 +16,274 @@ html, body {
 #root {
   width: 100%;
   height: 100%;
+}
+
+/* Apply Inter font globally */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom animations */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Utility classes */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Premium shadows */
+.shadow-premium {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-premium-lg {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.03),
+    0 4px 8px rgba(0, 0, 0, 0.04),
+    0 24px 48px rgba(0, 0, 0, 0.08);
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+/* Button styles */
+.btn-primary {
+  @apply px-4 py-2 bg-blue-500 text-white font-medium rounded-xl
+         hover:bg-blue-600 active:bg-blue-700
+         transition-all duration-150 ease-out
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-xl
+         hover:bg-gray-200 active:bg-gray-300
+         transition-all duration-150 ease-out
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-ghost {
+  @apply px-4 py-2 text-gray-600 font-medium rounded-xl
+         hover:bg-gray-100 active:bg-gray-200
+         transition-all duration-150 ease-out
+         disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Input styles */
+.input-primary {
+  @apply px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl
+         text-gray-900 placeholder-gray-400
+         focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+         transition-all duration-150 ease-out;
+}
+
+/* Card styles */
+.card {
+  @apply bg-white rounded-2xl shadow-premium;
+}
+
+.card-glass {
+  @apply bg-white/80 backdrop-blur-md rounded-2xl shadow-lg border border-gray-200/50;
+}
+
+/* Typography */
+.heading-lg {
+  @apply text-2xl font-semibold text-gray-900 tracking-tight;
+}
+
+.heading-md {
+  @apply text-lg font-semibold text-gray-900;
+}
+
+.heading-sm {
+  @apply text-sm font-semibold text-gray-700;
+}
+
+.text-body {
+  @apply text-sm text-gray-600;
+}
+
+.text-caption {
+  @apply text-xs text-gray-500;
+}
+
+.text-label {
+  @apply text-xs font-medium text-gray-500 uppercase tracking-wide;
+}
+
+/* Transitions */
+.transition-fast {
+  @apply transition-all duration-150 ease-out;
+}
+
+.transition-normal {
+  @apply transition-all duration-200 ease-out;
+}
+
+.transition-slow {
+  @apply transition-all duration-300 ease-out;
+}
+
+/* 3D Canvas specific styles */
+canvas {
+  touch-action: none;
+}
+
+/* Fix for WebGL antialiasing on some displays */
+canvas {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Loading spinner */
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Tooltip styles */
+.tooltip {
+  @apply absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 rounded-md whitespace-nowrap;
+}
+
+.tooltip::after {
+  content: '';
+  @apply absolute border-4 border-transparent;
+}
+
+.tooltip-bottom::after {
+  @apply top-full left-1/2 -translate-x-1/2 -mt-1 border-t-gray-900;
+}
+
+/* Color swatch */
+.color-swatch {
+  @apply w-4 h-4 rounded-full border border-gray-200 shadow-sm;
+}
+
+/* Status indicator */
+.status-dot {
+  @apply w-2 h-2 rounded-full;
+}
+
+.status-dot-success {
+  @apply bg-green-500;
+}
+
+.status-dot-warning {
+  @apply bg-yellow-500;
+}
+
+.status-dot-error {
+  @apply bg-red-500;
+}
+
+/* Selection ring for 3D objects */
+.selection-ring {
+  stroke: #3b82f6;
+  stroke-width: 2;
+  fill: none;
+  animation: pulse-subtle 1.5s ease-in-out infinite;
 }
